@@ -23,7 +23,7 @@ import numpy as np
 import pytest
 import h5py
 
-from gnome_aqueous_stability.aq_stability_h5py_database_setup import AQ_H5Database
+from aq_gnome.aq_stability_h5py_database_setup import AQ_H5Database
 
 ARRAY_SHAPE = (31, 19)  # U-grid × pH-grid, same as Stability_Criteria
 IDS = ["id_001", "id_002", "id_003"]

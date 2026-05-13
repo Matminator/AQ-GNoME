@@ -2,6 +2,14 @@
 
 AQ-GNoME evaluates the aqueous electrochemical (Pourbaix) stability of crystal structures from the GNoME database. The package provides tools for screening, filtering, and ranking candidates by stability criteria, elemental composition, Herfindahl–Hirschman Index (HHI) scores, and crystallographic disorder probability.
 
+## Installation
+
+```bash
+git clone https://github.com/Matminator/AQ-GNoME.git
+cd AQ-GNoME
+pip install -e .
+```
+
 ## Data
 
 The required data files can be downloaded from:

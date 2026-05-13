@@ -2,7 +2,7 @@ import pandas as pd
 from pathlib import Path
 import ast
 
-from gnome_aqueous_stability.aq_stability_h5py_database_setup import AQ_H5Database
+from aq_gnome.aq_stability_h5py_database_setup import AQ_H5Database
 
 CSV_GGAONLY_SOLID_FILTER_TRUE = 'stable_materials_summary_combinedGGA_only_2_filter_True.csv'
 CSV_GGAONLY_SOLID_FILTER_FALSE = 'stable_materials_summary_combinedGGA_only_2_filter_False.csv'

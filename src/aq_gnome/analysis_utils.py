@@ -8,8 +8,8 @@ from pymatgen.io.ase import AseAtomsAdaptor
 import ase.db
 from pymatgen.core import Composition
 from pathlib import Path
-from gnome_aqueous_stability.aq_stability_h5py_database_setup import AQ_H5Database
-from gnome_aqueous_stability.data_utils import Data_Handler
+from aq_gnome.aq_stability_h5py_database_setup import AQ_H5Database
+from aq_gnome.data_utils import Data_Handler
 from ase.db import connect
 
 
@@ -231,7 +231,7 @@ class Stability_Criteria:
             matrix[self.U_index, self.pH_index] = 0
 
         ax.imshow(matrix, origin='lower', vmin=0, cmap='terrain') 
-        ax.set_title('$\Delta$G$_{decomp}$ <= ' + str(self.decomposition_threshold) + ' eV/atom')
+        ax.set_title(r'$\Delta$G$_{decomp}$ <= ' + str(self.decomposition_threshold) + ' eV/atom')
         ax.set_xticks(np.linspace(0,len(self.pH_interval)-1, 10), [-2, 0, 2, 4, 6, 8, 10, 12, 14, 16])
         ax.set_xlabel('pH')
         ax.set_yticks(np.linspace(0,len(self.U_interval)-1, 7), [-2, -1, 0, 1, 2, 3, 4])
