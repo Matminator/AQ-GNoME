@@ -14,12 +14,10 @@ class Stability_Criteria:
 
         for p in [Us, pHs]:
             if isinstance(p, list):
-                if len(p) == 1:
-                    p = p[0]
-                elif len(p) > 2:
-                    raise ValueError("Us/pHs list can have at most 2 elements. Gave:", p)
+                if len(p) > 2:
+                    raise ValueError(f"Us/pHs list can have at most 2 elements. Gave: {p}")
                 elif len(p) < 1:
-                    raise ValueError("Us/pHs list must have at least 1 element. Gave:", p)
+                    raise ValueError(f"Us/pHs list must have at least 1 element. Gave: {p}")
 
         self.Us = Us
         self.pHs = pHs

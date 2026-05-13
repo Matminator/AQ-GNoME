@@ -29,8 +29,7 @@ class Data_Handler:
             root = package_root.parent.parent  # go up 2 levels
             data_path = root / "data"
         else:
-            if isinstance(path_to_data_directory, str):
-                data_path = Path(path_to_data_directory)
+            data_path = Path(path_to_data_directory)
             if not data_path.is_dir():
                 raise NotADirectoryError(f"The provided path_to_data_directory is not a directory: {data_path}")
             
