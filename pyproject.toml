@@ -24,9 +24,6 @@ dependencies = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools.package-data]
-data = ["*.csv", "*.h5", "*.db"]
-
 [project.optional-dependencies]
 dev = [
     "pytest",

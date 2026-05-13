@@ -209,3 +209,6 @@ __marimo__/
 # Large data files — download separately
 data/
 data.zip
+
+# Local notes
+notes for claude.txt
