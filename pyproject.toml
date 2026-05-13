@@ -1,0 +1,44 @@
+[project]
+name = "aq-gnome"
+dynamic = ["version"]
+description = "Aqueous electrochemical stability screening of GNoME crystal structures"
+readme = "README.md"
+requires-python = ">=3.11,<4.0"
+license = { text = "MIT" }
+
+authors = [
+  { name = "Mathias Stokkenbye Nissen", email = "matnis@dtu.com" }
+]
+
+dependencies = [
+  'numpy',
+  'matplotlib',
+  'tqdm',
+  'ase',
+  'pymatgen',
+  'h5py',
+  'seaborn',
+  'mp_api'
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+data = ["*.csv", "*.h5", "*.db"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["requires_data: test requires the data/ directory to be present"]
+
+[tool.setuptools_scm]
+
+[build-system]
+requires = ["setuptools>=61.0", "setuptools-scm"]
+build-backend = "setuptools.build_meta"

@@ -1,0 +1,13 @@
+Third-Party Component Notices
+==============================
+
+tqdm
+----
+Version in current environment: 4.67.1
+Source:  https://github.com/tqdm/tqdm
+
+tqdm is dual-licensed under the MIT License and the Mozilla Public
+License 2.0 (MPL-2.0). Both licenses are available at the URLs below:
+
+  MIT:     https://opensource.org/licenses/MIT
+  MPL-2.0: https://www.mozilla.org/en-US/MPL/2.0/
