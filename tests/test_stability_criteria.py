@@ -15,7 +15,7 @@ energies, shaped (31, 19) to match the fixed grids:
   - U_interval  = np.linspace(-2, 4,  31)  →  31 potential points, step 0.2 V
   - pH_interval = np.linspace(-2, 16, 19)  →  19 pH points,       step 1.0
 
-It returns the maximum decomposition energy in the selected U×pH region (float).
+It returns the maximum decomposition energy in the selected U x pH region (float).
 A material is stable when max_dG_in_region(decom_G) <= decomposition_threshold.
 
 Index reference used throughout these tests
@@ -227,7 +227,7 @@ def test_both_ranges_all_pass():
       → U-slice:  rows    10:16  (U  = 0.0 … 1.0 V)
       → pH-slice: columns  8:11  (pH = 6   … 8  )
 
-    All 6×3 = 18 cells in that block are set below threshold → True.
+    All 6 x 3 = 18 cells in that block are set below threshold → True.
     """
     sc = Stability_Criteria(Us=[0.0, 1.0], pHs=[6.0, 8.0], decomposition_threshold=0.5)
     decom_G = _all_above()
@@ -245,3 +245,23 @@ def test_both_ranges_one_fail():
     decom_G[10:16, 8:11] = 0.2   # fill the block...
     decom_G[13, 9] = 0.8         # ...then break one interior cell
     assert sc.max_dG_in_region(decom_G) > sc.decomposition_threshold
+
+
+# ── 7. col_name formatting ────────────────────────────────────────────────────
+
+def test_col_name_scalar_U_scalar_pH():
+    """Scalar Us and pHs produce a col_name with plain numbers."""
+    sc = Stability_Criteria(Us=0.0, pHs=7)
+    assert sc.col_name == "max_dG_U0.0_pH7"
+
+
+def test_col_name_range_U_scalar_pH():
+    """List Us produce bracket notation; scalar pHs remain plain."""
+    sc = Stability_Criteria(Us=[0.0, 1.0], pHs=7)
+    assert sc.col_name == "max_dG_U[0.0,1.0]_pH7"
+
+
+def test_col_name_equal_range_collapsed():
+    """A two-element list with identical values collapses to a scalar label."""
+    sc = Stability_Criteria(Us=[0.0, 0.0], pHs=7)
+    assert sc.col_name == "max_dG_U0.0_pH7"

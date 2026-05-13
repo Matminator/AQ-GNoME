@@ -11,6 +11,8 @@ class Compound_HHI_scores:
             package_root = Path(__file__).resolve().parent
             root = package_root.parent.parent  # go up 2 levels
             data_path = root / "data"
+        else:
+            data_path = Path(path_to_data_folder)
         self.HHI_df = pd.read_csv(data_path / 'HHI_values.csv')
 
     def _compute_HHI_score(self, element_dict: dict[str, int | float], HHI_type: str, exclude_elements: list[str]):
@@ -58,6 +60,6 @@ class Compound_HHI_scores:
         elif dummy_formula == 'ZrO2':
             element_dict = {'Zr': 1, 'O': 2}
         else:
-            raise ValueError("Dummy formula not recognized:", dummy_formula)
+            raise ValueError(f"Dummy formula not recognized: {dummy_formula}")
 
         return self._compute_HHI_score(element_dict, HHI_type, exclude_elements)

@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plt
 
 
-def get_col_dict_for_atoms(elements_to_discart=[], elements_to_include=[], elements_exclusively_allowed=[]):
+def get_col_dict_for_atoms(elements_to_discard=[], elements_to_include=[], elements_exclusively_allowed=[]):
     elements_cols = {}
     for element in elements_exclusively_allowed:
         elements_cols[element] = 'tab:blue'
     for element in elements_to_include:
         elements_cols[element] = 'tab:green'
-    for element in elements_to_discart:
+    for element in elements_to_discard:
         elements_cols[element] = 'tab:red'
     return elements_cols
 
