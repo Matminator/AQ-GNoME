@@ -1,4 +1,3 @@
-from statistics import mode
 import h5py
 import numpy as np
 

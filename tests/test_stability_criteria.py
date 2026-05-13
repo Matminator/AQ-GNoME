@@ -42,7 +42,7 @@ Test order
 
 import numpy as np
 import pytest
-from aq_gnome.analysis_utils import Stability_Criteria
+from aq_gnome.stability import Stability_Criteria
 
 SHAPE = (31, 19)  # shape of the decom_G array: (U points, pH points)
 
