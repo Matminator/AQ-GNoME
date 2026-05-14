@@ -247,7 +247,75 @@ def test_both_ranges_one_fail():
     assert sc.max_dG_in_region(decom_G) > sc.decomposition_threshold
 
 
-# ── 7. col_name formatting ────────────────────────────────────────────────────
+# ── 7. Exact value extraction ────────────────────────────────────────────────
+#
+# These tests verify the *numeric value* returned by max_dG_in_region, not just
+# whether it clears a threshold.  Index reference (see module docstring):
+#   U=0.0 V → row 10,  U=0.8 V → row 14,  U=1.0 V → row 15
+#   pH=6.0  → col  8,  pH=7.0  → col  9,  pH=8.0  → col 10
+
+def test_scalar_returns_exact_cell_value():
+    """Scalar U and pH: returns exactly the value at decom_G[10, 9]."""
+    sc = Stability_Criteria(Us=0.0, pHs=7.0)
+    decom_G = np.zeros(SHAPE)
+    decom_G[10, 9] = 0.42
+    assert sc.max_dG_in_region(decom_G) == pytest.approx(0.42)
+
+
+def test_U_range_returns_maximum_not_first_cell():
+    """U-range [0.0, 1.0], scalar pH=7: the spike at row 14 (U=0.8) is the max."""
+    sc = Stability_Criteria(Us=[0.0, 1.0], pHs=7.0)
+    decom_G = np.zeros(SHAPE)
+    decom_G[10:16, 9] = 0.1   # all cells in slice: 0.1
+    decom_G[14, 9] = 0.77     # spike at U=0.8 V (row 14), inside the range
+    assert sc.max_dG_in_region(decom_G) == pytest.approx(0.77)
+
+
+def test_pH_range_returns_maximum_not_first_cell():
+    """Scalar U=0.0, pH-range [6.0, 8.0]: the spike at col 10 (pH=8) is the max."""
+    sc = Stability_Criteria(Us=0.0, pHs=[6.0, 8.0])
+    decom_G = np.zeros(SHAPE)
+    decom_G[10, 8:11] = 0.2   # all cells in slice: 0.2
+    decom_G[10, 10] = 0.65    # spike at pH=8.0 (col 10), inside the range
+    assert sc.max_dG_in_region(decom_G) == pytest.approx(0.65)
+
+
+def test_2D_range_returns_maximum_of_block():
+    """2-D range [0.0,1.0]×[6.0,8.0]: spike inside the block is returned."""
+    sc = Stability_Criteria(Us=[0.0, 1.0], pHs=[6.0, 8.0])
+    decom_G = np.zeros(SHAPE)
+    decom_G[10:16, 8:11] = 0.15  # all 18 cells in block: 0.15
+    decom_G[13, 9] = 0.88        # spike at interior cell (row 13, col 9)
+    assert sc.max_dG_in_region(decom_G) == pytest.approx(0.88)
+
+
+def test_spike_at_range_corner_is_captured():
+    """A spike at the far corner of the 2-D region (U=1.0, pH=8.0) is included."""
+    sc = Stability_Criteria(Us=[0.0, 1.0], pHs=[6.0, 8.0])
+    decom_G = np.zeros(SHAPE)
+    decom_G[15, 10] = 0.91  # row 15 = U=1.0 V, col 10 = pH=8.0: boundary of region
+    assert sc.max_dG_in_region(decom_G) == pytest.approx(0.91)
+
+
+def test_spike_just_outside_U_range_is_not_captured():
+    """A spike one row beyond the U-range upper bound must not affect the result."""
+    sc = Stability_Criteria(Us=[0.0, 1.0], pHs=7.0)
+    decom_G = np.zeros(SHAPE)
+    decom_G[10:16, 9] = 0.1   # inside the U-slice: 0.1
+    decom_G[16, 9] = 0.99     # row 16 = U=1.2 V, just outside the range
+    assert sc.max_dG_in_region(decom_G) == pytest.approx(0.1)
+
+
+def test_spike_just_outside_pH_range_is_not_captured():
+    """A spike one column beyond the pH-range upper bound must not affect the result."""
+    sc = Stability_Criteria(Us=0.0, pHs=[6.0, 8.0])
+    decom_G = np.zeros(SHAPE)
+    decom_G[10, 8:11] = 0.2   # inside the pH-slice: 0.2
+    decom_G[10, 11] = 0.99    # col 11 = pH=9.0, just outside the range
+    assert sc.max_dG_in_region(decom_G) == pytest.approx(0.2)
+
+
+# ── 8. col_name formatting ────────────────────────────────────────────────────
 
 def test_col_name_scalar_U_scalar_pH():
     """Scalar Us and pHs produce a col_name with plain numbers."""
