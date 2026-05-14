@@ -17,7 +17,7 @@ https://doi.org/10.11583/DTU.30738716
 
 ## Usage
 
-See `data_analasis_v2.ipynb` for a worked example.
+See [`notebooks/data_analasis_v2.ipynb`](notebooks/data_analasis_v2.ipynb) for a worked example of the full screening pipeline.
 
 ## Citing this work
 
