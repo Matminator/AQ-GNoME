@@ -28,11 +28,26 @@ where = ["src"]
 dev = [
     "pytest",
     "pytest-cov",
+    "pre-commit",
+    "ruff",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = ["requires_data: test requires the data/ directory to be present"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]   # pycodestyle errors/warnings + pyflakes
+ignore = [
+    "E501",   # line too long (handled by formatter if needed)
+    "F401",   # imported but unused (common in __init__.py re-exports)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["E402"]   # imports-not-at-top is normal in notebook cells
 
 [tool.setuptools_scm]
 

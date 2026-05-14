@@ -11,11 +11,11 @@ class AQ_H5Database:
         self.h5file = h5py.File(filename, mode)
         if mode == 'r':
             ids = self.h5file["ids"][:]
-            ids_as_str = [id_str.decode("utf-8") 
-                                 if isinstance(id_str, bytes) 
+            ids_as_str = [id_str.decode("utf-8")
+                                 if isinstance(id_str, bytes)
                                  else id_str
                                  for id_str in ids]
-            self.ids_to_index = {id_str: idx for idx, id_str 
+            self.ids_to_index = {id_str: idx for idx, id_str
                                  in enumerate(ids_as_str)}
 
     def close(self):
@@ -29,13 +29,13 @@ class AQ_H5Database:
 
         dset_arrays = self.h5file["decomposition_energies"]
         dset_ids = self.h5file["ids"]
-        
+
         n = dset_arrays.shape[0]
-        
+
         # Resize both datasets
         dset_arrays.resize(n + 1, axis=0)
         dset_ids.resize(n + 1, axis=0)
-        
+
         # Store
         dset_arrays[n] = array
         dset_ids[n] = id_str
