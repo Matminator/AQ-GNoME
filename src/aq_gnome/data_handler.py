@@ -1,3 +1,4 @@
+import json
 import pandas as pd
 from pathlib import Path
 import ast
@@ -27,27 +28,40 @@ class Data_Handler:
         if path_to_data_directory is None:
             package_root = Path(__file__).resolve().parent
             root = package_root.parent.parent  # go up 2 levels
-            data_path = root / "data"
+            self.data_path = root / "data"
         else:
-            data_path = Path(path_to_data_directory)
-            if not data_path.is_dir():
-                raise NotADirectoryError(f"The provided path_to_data_directory is not a directory: {data_path}")
+            self.data_path = Path(path_to_data_directory)
+            if not self.data_path.is_dir():
+                raise NotADirectoryError(f"The provided path_to_data_directory is not a directory: {self.data_path}")
+            self.data_path = self.data_path.resolve()
 
-            data_path = data_path.resolve()
+        self._working_df = self._load_df()
 
-        # Load CSVs, which are mostly that found from the GNoME github:
+        # Load H5PY databases, which contain the computed decomposition
+        # energies:
+        self.gga_results = AQ_H5Database(
+            self.data_path /
+            (H5PY_DB_GGAONLY_SOLID_FILTER_TRUE if solid_filter else H5PY_DB_GGAONLY_SOLID_FILTER_FALSE),
+            mode='r')
+        self.mixed_results = AQ_H5Database(
+            self.data_path /
+            (H5PY_DB_MIXED_SOLID_FILTER_TRUE if solid_filter else H5PY_DB_MIXED_SOLID_FILTER_FALSE),
+            mode='r')
+
+    def _load_df(self) -> pd.DataFrame:
+        """Load and merge all CSVs from disk. Called at init and by restore_df()."""
         gga_df = pd.read_csv(
-            data_path /
-            (CSV_GGAONLY_SOLID_FILTER_TRUE if solid_filter else CSV_GGAONLY_SOLID_FILTER_FALSE),
+            self.data_path /
+            (CSV_GGAONLY_SOLID_FILTER_TRUE if self.solid_filter else CSV_GGAONLY_SOLID_FILTER_FALSE),
             index_col=0
             )
         mixed_df = pd.read_csv(
-            data_path /
-            (CSV_MIXED_SOLID_FILTER_TRUE if solid_filter else CSV_MIXED_SOLID_FILTER_FALSE),
+            self.data_path /
+            (CSV_MIXED_SOLID_FILTER_TRUE if self.solid_filter else CSV_MIXED_SOLID_FILTER_FALSE),
             index_col=0
             )
-        disorder = pd.read_csv(data_path / "disorder_prob.csv", index_col=0)
-        precomputed_HHI = pd.read_csv(data_path / "precomputed_HHI_scores.csv", index_col=0)
+        disorder = pd.read_csv(self.data_path / "disorder_prob.csv")
+        precomputed_HHI = pd.read_csv(self.data_path / "precomputed_HHI_scores.csv", index_col=0)
 
         gga_df = gga_df.rename(columns={"pbx_save_id": "gga_only_pbx_save_id"})
         mixed_df = mixed_df.rename(columns={"pbx_save_id": "mixed_pbx_save_id"})
@@ -56,52 +70,42 @@ class Data_Handler:
         combined_df = combined_df.merge(precomputed_HHI, on="MaterialId")
 
         self.N_total_GNoME = len(combined_df)
-        combined_df["Elements"] = combined_df["Elements"].apply(ast.literal_eval)
-        self.combined_df = combined_df[combined_df['gga_only_pbx_save_id'] != 'Not computed']
-        self.modified_df = self.combined_df.copy()
-
-        # Load H5PY databases, which contain the computed decomposition
-        # energies:
-        self.gga_results = AQ_H5Database(
-            data_path /
-            (H5PY_DB_GGAONLY_SOLID_FILTER_TRUE if solid_filter else H5PY_DB_GGAONLY_SOLID_FILTER_FALSE),
-            mode='r')
-        self.mixed_results = AQ_H5Database(
-            data_path /
-            (H5PY_DB_MIXED_SOLID_FILTER_TRUE if solid_filter else H5PY_DB_MIXED_SOLID_FILTER_FALSE),
-            mode='r')
+        # json.loads is ~4x faster than ast.literal_eval on 529k rows; single-quote → double-quote converts Python repr to valid JSON
+        # combined_df["Elements"] = combined_df["Elements"].apply(ast.literal_eval)
+        combined_df["Elements"] = combined_df["Elements"].apply(lambda x: json.loads(x.replace("'", '"')))
+        return combined_df[combined_df['gga_only_pbx_save_id'] != 'Not computed']
 
     def remove_entries_with_elements(self, elements: str | list[str]):
         if isinstance(elements, str):
             elements = [elements]
 
-        df = self.modified_df.copy()
+        df = self._working_df.copy()
         df = df[~df['Elements'].apply(lambda x: any(i in elements for i in x))]
-        print("Number of entries removed:", len(self.modified_df) - len(df),
+        print("Number of entries removed:", len(self._working_df) - len(df),
               'Number of entries left:', len(df), 'which is',
               f"{len(df) / self.N_total_GNoME * 100:.2f}% of total GNoME database" )
-        self.modified_df = df
+        self._working_df = df
 
     def remove_entries_not_consisting_exclusively_of_elements(self, elements: str | list[str]):
         if isinstance(elements, str):
             elements = [elements]
 
-        df = self.modified_df.copy()
+        df = self._working_df.copy()
         df = df[df['Elements'].apply(lambda x: all(i in elements for i in x))]
         print(
             'Removed all entries not consisting exclusively of:', ', '.join(elements),
-            '. Number of entries removed:', len(self.modified_df) - len(df),
+            '. Number of entries removed:', len(self._working_df) - len(df),
             'Number of entries left:', len(df), 'which is',
             f"{len(df) / self.N_total_GNoME * 100:.2f}% of total GNoME database"
         )
-        self.modified_df = df
+        self._working_df = df
 
     def remove_entries_without_elements(self, elements: str | list[str],
                                         must_contain_all: bool):
         if isinstance(elements, str):
             elements = [elements]
 
-        df = self.modified_df.copy()
+        df = self._working_df.copy()
 
         if must_contain_all:
             for el in elements:
@@ -120,15 +124,15 @@ class Data_Handler:
 
         print(
             message,
-            ".Number of entries removed:", len(self.modified_df) - len(df),
+            ".Number of entries removed:", len(self._working_df) - len(df),
             'Number of entries left:', len(df), 'which is',
             f"{len(df) / self.N_total_GNoME * 100:.2f}% of total GNoME database"
             )
 
-        self.modified_df = df
+        self._working_df = df
 
     def restore_df(self):
-        self.modified_df = self.combined_df.copy()
+        self._working_df = self._load_df()
 
     def get_df(self):
-        return self.modified_df.copy()
+        return self._working_df.copy()

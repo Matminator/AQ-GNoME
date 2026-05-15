@@ -8,7 +8,7 @@ Data_Handler loads CSVs and HDF5 databases on __init__, which requires the
 real data/ directory.  To test the filtering logic without real files, every
 test here bypasses __init__ by creating a bare instance (object.__new__) and
 injecting a synthetic DataFrame directly.  This is safe because the filtering
-methods only touch self.modified_df, self.combined_df, and self.N_total_GNoME.
+methods only touch self._working_df and self.N_total_GNoME.
 
 The synthetic_df fixture is defined in conftest.py.  pytest automatically
 makes it available to any test function that lists it as a parameter — no
@@ -29,15 +29,14 @@ from aq_gnome.data_handler import Data_Handler
 
 def _make_handler(df: pd.DataFrame) -> Data_Handler:
     """
-    Return a Data_Handler with combined_df / modified_df set to df, without
-    touching the filesystem.  object.__new__(Data_Handler) creates an instance
-    that skips __init__ entirely; we then set the three attributes the
-    filtering methods actually use.
+    Return a Data_Handler with _working_df set to df, without touching the
+    filesystem. _load_df is patched so restore_df() resets to df without
+    reading from disk.
     """
     dh = object.__new__(Data_Handler)
-    dh.combined_df = df.copy()
-    dh.modified_df = df.copy()
+    dh._working_df = df.copy()
     dh.N_total_GNoME = len(df)
+    dh._load_df = lambda: df.copy()
     return dh
 
 
