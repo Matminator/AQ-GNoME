@@ -38,4 +38,4 @@ Gaultois et al., *Chem. Mater.* 25, 2911–2920 (2013). https://doi.org/10.1021/
 
 **Code:** MIT License — Copyright © 2026 Technical University of Denmark. See [LICENSE](LICENSE).
 
-**Data:** The dataset (available at https://doi.org/10.11583/DTU.30738716) is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) due to the inclusion of GNoME-derived data (Google DeepMind, CC BY-NC 4.0). Non-commercial use only. See [data/DATA_LICENSE.md](data/DATA_LICENSE.md) for per-file attribution details.
+**Data:** The dataset (available at https://doi.org/10.11583/DTU.30738716) is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) due to the inclusion of GNoME-derived data (Google DeepMind, CC BY-NC 4.0). Non-commercial use only. See the [DTU Data deposit](https://doi.org/10.11583/DTU.30738716) for per-file license and attribution details.
