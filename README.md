@@ -12,8 +12,11 @@ pip install -e .
 
 ## Data
 
-The required data files can be downloaded from:
+Download `data.zip` from the DTU Data deposit and unzip it into the root of the repository:
+
 https://doi.org/10.11583/DTU.30738716
+
+The `data/` folder is not included in this repository.
 
 ## Usage
 
@@ -21,7 +24,11 @@ See [`notebooks/data_analysis_v2.ipynb`](notebooks/data_analysis_v2.ipynb) for a
 
 ## Citing this work
 
-If you use AQ-GNoME, please also cite the following:
+If you use AQ-GNoME, please cite:
+
+Nissen, M. S., Beck, P., Karlsson, L., et al. AQ-GNoME: an Aqueous Stability Augmentation of the GNoME Database. *ChemRxiv* (2026). https://doi.org/10.26434/chemrxiv.15003677/v1
+
+Please also cite the following:
 
 **GNoME** (crystal structure data):
 Merchant et al., *Nature* (2023). https://doi.org/10.1038/s41586-023-06735-9
