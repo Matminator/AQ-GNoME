@@ -95,15 +95,48 @@ class Stability_Criteria:
 
 
 class Stable_Entries:
+    """
+    Filters GNoME entries by aqueous (Pourbaix) stability and collects results.
+
+    Parameters
+    ----------
+    data_handler : Data_Handler
+        Provides the materials DataFrame and pre-computed Pourbaix decomposition
+        energy arrays (GGA-only and/or mixed functional).
+    stability_criteria : Stability_Criteria | list[Stability_Criteria]
+        One or more criteria defining the U/pH region(s) and decomposition-energy
+        threshold below which a material is considered stable.
+    structures_db : optional
+        ASE database of crystal structures, used for structure-level queries.
+    non_negative : bool, default True
+        If True, decomposition energies reported in the output DataFrame are
+        clamped to a minimum of 0.0 eV/atom.
+
+        Negative decomposition energies are an artifact of the solid filter.
+        When a material is excluded from the Pourbaix reference pool (solid
+        filter applied), it cannot decompose into itself — its minimum
+        decomposition energy is therefore set by competing phases, which may
+        be less stable, yielding a negative value. Materials that are included
+        in the reference pool can always decompose into themselves and thus
+        have a natural floor of 0.0 eV/atom. Negative values are therefore
+        not physically comparable to zero values reported for non-filtered
+        entries: both mean "stable under these conditions". Clamping to 0
+        makes the reported values consistent across both cases.
+
+        Set non_negative=False only if you need the raw computed values for
+        diagnostic or methodological purposes.
+    """
     def __init__(self,
             data_handler: Data_Handler,
             stability_criteria: Stability_Criteria | list[Stability_Criteria],
-            structures_db=None):
+            structures_db=None,
+            non_negative: bool = True):
 
         if type(stability_criteria) is not list:
             stability_criteria = [stability_criteria]
         self.stability_criteria = stability_criteria
         self.structures_db = structures_db
+        self.non_negative = non_negative
 
         self.df = data_handler.get_df()
         self.results_gga = data_handler.gga_results
@@ -126,7 +159,8 @@ class Stable_Entries:
             self.stable_df = self.df[self.df['MaterialId'].isin(stable_ids)].copy()
             for sc_idx, sc in enumerate(self.stability_criteria):
                 self.stable_df.insert(sc_idx, sc.col_name, [
-                    round(self.max_dG_per_id[mid][sc_idx], 2)
+                    round(max(0.0, self.max_dG_per_id[mid][sc_idx]) if self.non_negative
+                          else self.max_dG_per_id[mid][sc_idx], 2)
                     for mid in self.stable_df['MaterialId']
                 ])
         return self.stable_df.copy()
