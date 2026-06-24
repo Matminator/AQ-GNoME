@@ -13,6 +13,9 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "requires_data: test requires the data/ directory to be present"
     )
+    config.addinivalue_line(
+        "markers", "requires_api: test requires MP_API_KEY and live network access"
+    )
 
 
 @pytest.fixture(scope="session")
