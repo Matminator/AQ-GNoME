@@ -365,6 +365,8 @@ class MPCache:
         curve time (Step 2).
         """
         subs = _subsystems(set(elements) | set(open_elements))
+        if not subs:
+            return []
         placeholders = ",".join("?" * len(subs))
         self.cursor.execute(
             f"SELECT entry FROM entries WHERE chemsys IN ({placeholders})", subs

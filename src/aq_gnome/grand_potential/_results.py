@@ -38,10 +38,17 @@ from aq_gnome.grand_potential.analyzer import CurveResult
 # --------------------------------------------------------------------- config
 
 def _canonical_config(config: dict) -> dict:
-    """Canonical, JSON-stable form of a config (T-grid rounded so float noise doesn't fork it)."""
-    cfg = dict(config)
-    cfg['T_values'] = [round(float(t), 6) for t in config['T_values']]
-    return cfg
+    """Canonical, JSON-stable form of a config: the five identity knobs coerced to native types (so
+    numpy scalars don't break ``json.dumps``), with the T-grid rounded so float noise doesn't fork
+    the store hash."""
+    si = config['si_reference']
+    return {
+        'mixing': str(config['mixing']),
+        'P_O2': float(config['P_O2']),
+        'si_reference': None if si is None else str(si),
+        'include_gnome_competitors': bool(config['include_gnome_competitors']),
+        'T_values': [round(float(t), 6) for t in config['T_values']],
+    }
 
 
 def _config_hash(config: dict) -> str:
@@ -132,18 +139,21 @@ class ResultsCache:
 
     # ------------------------------------------------------------- config bind
 
-    def bind(self, config: dict):
+    def bind(self, config: dict, force: bool | None = None):
         """Attach to the store under ``config``, or (with ``force``) create/overwrite it.
 
         Matching config -> attach (keep rows). Mismatched or empty store -> raise unless ``force``,
-        which truncates and recreates the store under ``config``.
+        which truncates and recreates the store under ``config``. ``force`` defaults to the cache's
+        ``force`` flag; pass it explicitly to override for this call (e.g. to initialise a brand-new
+        store created with ``force=False``).
         """
+        force = self.force if force is None else force
         cfg_hash = _config_hash(config)
         if self.h5.attrs.get('config_hash') == cfg_hash and 'material_ids' in self.h5:
             self._n_T = self.h5['E_above_hull'].shape[1]
             return
 
-        if not self.force:
+        if not force:
             stored = self.config
             if stored is None:
                 raise ValueError(
@@ -279,4 +289,6 @@ def list_result_stores(directory) -> pd.DataFrame:
             'n_T': n_T,
             'count': n,
         })
-    return pd.DataFrame(rows)
+    return pd.DataFrame(rows, columns=[
+        'file', 'mixing', 'P_O2', 'si_reference', 'include_gnome_competitors', 'n_T', 'count',
+    ])

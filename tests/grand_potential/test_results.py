@@ -4,7 +4,9 @@ import numpy as np
 import pytest
 
 from aq_gnome.grand_potential import CurveResult, ResultsCache, list_result_stores
-from aq_gnome.grand_potential._results import _decomp_to_transitions, _transitions_to_per_T
+from aq_gnome.grand_potential._results import (
+    _decomp_to_transitions, _transitions_to_per_T, _config_hash,
+)
 
 T = [0.0, 100.0, 200.0, 300.0]
 
@@ -51,6 +53,15 @@ def test_decomp_transitions_roundtrip_preserves_product_sets():
 def test_decomp_empty():
     assert _decomp_to_transitions(T, []) == []
     assert _transitions_to_per_T(T, []) == []
+
+
+def test_config_hash_coerces_numpy_types():
+    # numpy-typed config values must hash identically to native ones (and not crash json.dumps).
+    numpyish = {"mixing": "GGA", "P_O2": np.float64(1.0), "si_reference": None,
+                "include_gnome_competitors": np.bool_(False), "T_values": np.linspace(0, 1500, 5)}
+    native = {"mixing": "GGA", "P_O2": 1.0, "si_reference": None,
+              "include_gnome_competitors": False, "T_values": list(np.linspace(0, 1500, 5))}
+    assert _config_hash(numpyish) == _config_hash(native)
 
 
 # ----------------------------------------------------------------- put / get
@@ -150,6 +161,20 @@ def test_config_mismatch_with_force_overwrites(tmp_path):
     rc2.close()
 
 
+def test_bind_force_override_initialises_empty_store(tmp_path):
+    # __init__ creates an empty .h5; a force=False cache must still let an explicit force=True bind
+    # initialise it (this is what saves the notebook's "file exists but unbound" case).
+    rc = ResultsCache(tmp_path / "r.h5")           # force=False; empty file
+    assert rc.config is None
+    with pytest.raises(ValueError, match="No results store exists yet"):
+        rc.bind(_config())                          # default force (False) -> refuses
+    rc.bind(_config(), force=True)                  # per-call override -> creates
+    assert rc.config is not None
+    rc.put("m1", _result([0, 0, 0, 0]))
+    assert rc.has("m1")
+    rc.close()
+
+
 # ----------------------------------------------------------------- persistence
 
 def test_reopen_loads_index(tmp_path):
@@ -203,3 +228,11 @@ def test_list_result_stores(tmp_path):
     assert df.loc["ggaair.h5", "count"] == 1
     assert df.loc["ggapure.h5", "count"] == 0
     assert df.loc["ggapure.h5", "n_T"] == 4
+
+
+def test_list_result_stores_empty_dir_has_columns(tmp_path):
+    df = list_result_stores(tmp_path)
+    assert len(df) == 0
+    assert list(df.columns) == [
+        "file", "mixing", "P_O2", "si_reference", "include_gnome_competitors", "n_T", "count",
+    ]

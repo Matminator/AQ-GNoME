@@ -58,6 +58,17 @@ def test_r2scan_mode_gga_only_when_mixed_is_gga():
     assert az._resolve_entries(az._df.loc["m3"]) == ["GGA_m3"]  # mixed id is GGA_, not r2S_
 
 
+def test_resolve_entries_missing_db_entry_raises():
+    class _NoneDB:
+        def get_entry(self, pbx_id):
+            return None  # entry not in the db
+
+    az = GrandPotentialAnalyzer(cache=None, gnome_db=_NoneDB(), gnome_df=_df(),
+                                include_gnome_competitors=False, mixing="GGA")
+    with pytest.raises(ValueError, match="not found in the GNoME db"):
+        az._resolve_entries(az._df.loc["m1"])
+
+
 # ------------------------------------------------- _enumerate_competitor_entries
 
 def test_enumerate_disabled_returns_empty():

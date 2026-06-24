@@ -150,11 +150,18 @@ class GrandPotentialAnalyzer:
         one (``mixed_pbx_save_id`` starts ``'r2S_'``). The two share a structure, which lets the
         mixing scheme anchor it.
         """
-        entries = [self.gnome_db.get_entry(row['gga_only_pbx_save_id'])]
+        gga_id = row['gga_only_pbx_save_id']
+        gga_entry = self.gnome_db.get_entry(gga_id)
+        if gga_entry is None:
+            raise ValueError(f"GNoME entry '{gga_id}' not found in the GNoME db.")
+        entries = [gga_entry]
         if self.mixing == 'GGA+r2SCAN':
             mixed_id = row['mixed_pbx_save_id']
             if isinstance(mixed_id, str) and mixed_id.startswith('r2S_'):
-                entries.append(self.gnome_db.get_entry(mixed_id))
+                r2s_entry = self.gnome_db.get_entry(mixed_id)
+                if r2s_entry is None:
+                    raise ValueError(f"GNoME r2SCAN entry '{mixed_id}' not found in the GNoME db.")
+                entries.append(r2s_entry)
         return entries
 
     def _enumerate_competitor_entries(self, chem_sys: set, target_material_id) -> list:
