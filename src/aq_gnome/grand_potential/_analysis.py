@@ -1,9 +1,16 @@
+import warnings
+
 import numpy as np
 from pymatgen.core import Element
 from pymatgen.analysis.phase_diagram import (
     PhaseDiagram, GrandPotentialPhaseDiagram, GrandPotPDEntry,
 )
 from aq_gnome.grand_potential._shomate import delta_mu_O
+
+# pymatgen's energy corrections are zero-uncertainty UFloats; building a phase diagram from them
+# emits a benign "Using UFloat objects with std_dev==0" UserWarning once per material. Silence just
+# that message so batch runs stay readable — it carries no information about the result.
+warnings.filterwarnings("ignore", message="Using UFloat objects with std_dev==0")
 
 
 def compute_Si_O_stability_curve(

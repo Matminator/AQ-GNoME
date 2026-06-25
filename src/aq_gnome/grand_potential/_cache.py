@@ -281,7 +281,9 @@ class MPCache:
             "entries_written": entries_written,
             "total_entries": self.count_entries(),
         }
-        if verbose:
+        # Only announce when something was actually downloaded; a no-op (fully-cached) call would
+        # otherwise print a redundant line for every material in a batch run.
+        if verbose and (n_chemsys_fetched or entries_written):
             print(
                 f"MPCache: {summary['n_systems']} systems "
                 f"({skipped_covered} already covered, "
