@@ -130,7 +130,12 @@ def apply_corrections(
     import copy
 
     target_label = str(target_entries[0].entry_id)
-    mp_pool = list(mp_entries)
+    # Filter MP entries to the mode's run-types up front, BEFORE structure-matching. Otherwise a
+    # target (or competitor) whose structure exists in MP only as an r2SCAN calculation gets
+    # substituted by that r2SCAN entry and then deleted by the end-of-function run-type filter in
+    # 'GGA' mode — silently losing the phase from its own analysis. Filtering first means 'GGA' mode
+    # only ever matches GGA/GGA+U twins; 'GGA+r2SCAN' keeps everything, so this is a no-op there.
+    mp_pool = filter_run_types(list(mp_entries), mixing)
     pool_extra: list = []
     target_ids: set[str] = set()
     mp_substituted = False
@@ -157,6 +162,13 @@ def apply_corrections(
             sub.entry_id = f"MP_GNOME{suffix}_{target_label}"
             pool_extra.append(sub)
             target_ids.add(sub.entry_id)
+        # If every MP twin is r2SCAN (no GGA/GGA+U among them), the mixing scheme has no GGA entry to
+        # anchor that structure and would discard the lone r2SCAN target. Feed the GNoME GGA entry
+        # (same structure) as the anchor; the scheme then collapses both to one r2SCAN representative.
+        # In 'GGA' mode this never triggers — the run-type pre-filter leaves only GGA/GGA+U twins.
+        if all(m.parameters.get('run_type') in _R2SCAN_FAMILY for m in target_matches):
+            pool_extra.append(target_entries[0])
+            target_ids.add(str(target_entries[0].entry_id))
     else:
         for e in target_entries:
             pool_extra.append(e)
@@ -172,7 +184,11 @@ def apply_corrections(
     pool = filter_run_types(mp_pool + pool_extra, mixing)
 
     with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=UserWarning, module="pymatgen")
+        # The GGA+r2SCAN mixing scheme emits a benign "Discarding ... not found in the mixing state
+        # data" UserWarning for every redundant polymorph it dedups (dozens per material, mostly the
+        # O2/SiO2 references). pymatgen attributes these to this call site, so a module="pymatgen"
+        # filter never matches — suppress UserWarning outright for the duration of process_entries.
+        warnings.filterwarnings("ignore", category=UserWarning)
         all_corrected = compat.process_entries(pool)
 
     target_candidates = [e for e in all_corrected if str(e.entry_id) in target_ids]
