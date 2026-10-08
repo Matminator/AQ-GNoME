@@ -38,6 +38,10 @@ markers = ["requires_data: test requires the data/ directory to be present"]
 
 [tool.ruff]
 line-length = 100
+# paper/ holds the archival notebooks behind the manuscript figures and case studies;
+# they are provenance, not maintained code, so they are kept byte-for-byte and not linted.
+extend-exclude = ["paper"]
+force-exclude = true   # make the pre-commit hook honour the exclusion too
 
 [tool.ruff.lint]
 select = ["E", "F", "W"]   # pycodestyle errors/warnings + pyflakes
