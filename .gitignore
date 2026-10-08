@@ -210,8 +210,21 @@ __marimo__/
 data/
 data.zip
 
-# Local notes
-notes for claude.txt
+# Local virtual environment
+local_venv/
+
+# Local scratch — notes, backups, one-off notebooks, AI-session workspace
+_scratch/
+_claude_workspace/
+
+# Notebook outputs (CIF exports, zipped structure batches)
+notebooks/cif_output/
+notebooks/*.zip
+notebooks/cifs_*/
+notebooks/cif_*/
+
+# Regenerable per-material caches in the paper figure notebooks (GNoME-derived data, CC BY-NC)
+paper/figures/cache_*.csv
 
 # Experimental / side projects — local only, never committed
 experimental/
