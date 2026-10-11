@@ -31,6 +31,9 @@ dev = [
     "pre-commit",
     "ruff",
 ]
+app = [
+    "streamlit>=1.49",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

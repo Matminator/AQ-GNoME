@@ -1,0 +1,33 @@
+# Run from this folder:  docker compose up -d --build
+# Optional settings go in app/.env (see .env.example): AQ_GNOME_DATA_DIR, SITE_ADDRESS, …
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: app/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ${AQ_GNOME_DATA_DIR:-../data}:/data:ro
+    environment:
+      AQ_GNOME_MAX_VARIANTS: ${AQ_GNOME_MAX_VARIANTS:-1}
+    expose:
+      - "8501"
+
+  # HTTPS termination + reverse proxy. SITE_ADDRESS=":80" serves plain HTTP; a hostname
+  # (e.g. aqgnome.example.org or 1.2.3.4.sslip.io) gets a Let's Encrypt certificate automatically.
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
