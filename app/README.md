@@ -51,7 +51,8 @@ CPU hardly matters. 32 GB of disk is enough (OS + image ≈ 8 GB, data ≈ 7 GB)
 3. Get the code and the data:
    ```bash
    git clone https://github.com/Matminator/AQ-GNoME.git && cd AQ-GNoME
-   # download data.zip from https://doi.org/10.11583/DTU.30738716, then:
+   # data.zip (4.9 GB) from the DTU Data deposit https://doi.org/10.11583/DTU.30738716
+   wget -O data.zip https://ndownloader.figshare.com/files/64699584
    unzip data.zip -d . && rm data.zip
    ```
 4. Start it:
